@@ -35,20 +35,23 @@ It is meant to replace pgAdmin / phpMyAdmin on a small VPS: one Python process w
 | `SECRET_KEY` | | derived | cookie signing key (derived from the admin credentials if unset) |
 | `MAX_RESULT_ROWS` | | `1000` | rows shown per terminal result |
 | `SESSION_HOURS` | | `12` | login lifetime |
+| `PORT` | | `80` | container listen port (leave unset on Coolify) |
 
 ## Deploy on Coolify
 1. Push this folder to a **private** repo, or upload the zip contents. In Coolify, go to **+ New → Docker Compose** (choose a Git source, "Docker Compose" build pack, and `/docker-compose.yml`).
-2. On the `litesql` service, set the **Domain** to `https://sql.collab.name.ng:8080`. The `:8080` tells Coolify's proxy which container port to use; the public URL stays `https://sql.collab.name.ng`. Point the DNS A record for `sql.collab.name.ng` at the VPS (62.169.23.173).
+2. On the `litesql` service, set the **Domain** to `https://sql.collab.name.ng` with **no port**. If Coolify shows a port field, leave it empty or on auto. The container listens on port 80 inside its own network, which is Coolify's default upstream port. No host port is published, so it cannot collide with other apps already using 8080 or anything else on the VPS. Point the DNS A record for `sql.collab.name.ng` at the VPS (62.169.23.173).
 3. **Environment variables**: set `DATABASE_URL`, `ADMIN_USER`, `ADMIN_PASSWORD` and `APP_URL=https://sql.collab.name.ng`. Optionally set `READ_ONLY`, `IMPORT_MAX_MB` and the others. Mark the password as a secret, and enter it in Coolify, not in the repo.
 4. **Internal `DATABASE_URL` tip**: for a database that Coolify manages, copy the **Postgres URL (internal)** from the DB's page. Its host is the container name, e.g. `postgres://postgres:…@q8k2…abc:5432/postgres`. That traffic stays on the Docker network and needs no public port. For LiteSQL to resolve that hostname, tick **Connect to Predefined Network** on the LiteSQL resource, or uncomment the `coolify` external network in `docker-compose.yml`. A DB that belongs to another compose stack needs that stack's network instead (or the predefined network on both).
 5. Deploy. The healthcheck hits `/api/health`, and the container is capped at `mem_limit: 256m`.
+
+**Ports**: the app listens on `0.0.0.0:$PORT` (default `80` in the image). You only need to set `PORT` if you want a different internal port, and then you must append it to the Coolify domain (`https://sql.collab.name.ng:<PORT>`). Binding 80 as the non-root user relies on the `net.ipv4.ip_unprivileged_port_start: 0` sysctl in the compose file, which Docker 20.10+ already sets by default.
 
 To manage several databases, deploy one LiteSQL per database (each about 70 MB) on its own subdomain, e.g. `sql.collab.name.ng` and `mysql.collab.name.ng`.
 
 ### Plain Docker
 ```bash
 cp .env.example .env   # edit it
-docker compose up -d --build   # then uncomment `ports:` or put it behind your proxy
+docker compose up -d --build   # uncomment `ports:` → http://localhost:6789 (HOST_PORT), or put it behind your proxy
 ```
 
 ## Security

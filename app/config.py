@@ -131,5 +131,5 @@ def load() -> Settings:
         max_result_rows=min(20000, max(100, _int("MAX_RESULT_ROWS", 1000))),
         session_hours=max(1, _int("SESSION_HOURS", 12)),
         show_system_schemas=_bool("SHOW_SYSTEM_SCHEMAS", False),
-        port=_int("PORT", 8080),
+        port=_int("PORT", 80),
     )

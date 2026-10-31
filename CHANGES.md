@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.0.1 — 2026-10-31
+- **Ports / Coolify**: no host port is published any more, and the domain needs no `:port` suffix.
+  - The container now listens on `0.0.0.0:${PORT:-80}` (was a fixed 8080). Port 80 is Coolify's default upstream port, so the proxy finds the app automatically. With no published host port there are no clashes with other apps on 8080.
+  - Compose: `PORT` env, `expose: ${PORT:-80}`, a port-aware healthcheck, and a `net.ipv4.ip_unprivileged_port_start: 0` sysctl so the non-root user can bind 80.
+  - The optional local mapping (commented out) is `${HOST_PORT:-6789}:${PORT:-80}`.
+  - The README's Coolify steps were updated to match.
+
 ## 1.0.0 — 2026-10-31
 First release.
 

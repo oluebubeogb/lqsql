@@ -1,10 +1,12 @@
 # LiteSQL — one small container, no bundled database.
 # Coolify: create a "Docker Compose" resource from this repo, set the domain on the
-# `litesql` service (e.g. https://sql.collab.name.ng:8080 → port 8080) and fill the env vars.
+# `litesql` service (e.g. https://sql.collab.name.ng, no port) and fill the env vars.
+# No host port is published: Coolify's proxy reaches the container on the internal
+# network, so nothing collides with other apps using 8080/3000/etc. on the VPS.
 services:
   litesql:
     build: .
-    image: litesql:1.0.0
+    image: litesql:1.0.1
     restart: unless-stopped
     environment:
       DATABASE_URL: ${DATABASE_URL:?set DATABASE_URL}
@@ -17,17 +19,22 @@ services:
       QUERY_TIMEOUT_SECONDS: ${QUERY_TIMEOUT_SECONDS:-30}
       PAGE_SIZE_DEFAULT: ${PAGE_SIZE_DEFAULT:-50}
       SECRET_KEY: ${SECRET_KEY:-}
+      # container listen port; 80 is what Coolify's proxy targets when the domain has no :port
+      PORT: ${PORT:-80}
     expose:
-      - "8080"
-    # Local use without Coolify: uncomment to publish the port.
+      - "${PORT:-80}"
+    # Local use without Coolify only (Coolify ignores this; its proxy handles routing):
     # ports:
-    #   - "8080:8080"
+    #   - "${HOST_PORT:-6789}:${PORT:-80}"
     volumes:
       # only needed for SQLite: DATABASE_URL=sqlite:////data/app.db
       - litesql-data:/data
     mem_limit: 256m
+    sysctls:
+      # lets the non-root app user bind port 80 inside its own network namespace
+      net.ipv4.ip_unprivileged_port_start: 0
     healthcheck:
-      test: ["CMD", "python", "-c", "import urllib.request;urllib.request.urlopen('http://127.0.0.1:8080/api/health',timeout=4)"]
+      test: ["CMD", "python", "-c", "import urllib.request,os;urllib.request.urlopen('http://127.0.0.1:%s/api/health'%os.getenv('PORT','80'),timeout=4)"]
       interval: 30s
       timeout: 5s
       retries: 3
