@@ -1,5 +1,5 @@
-const H = { 'x-litesql': '1' };
-// Set by the server in index.html: '' at the domain root, '/litesql' when ROOT_PATH is used.
+const H = { 'x-lqsql': '1' };
+// Set by the server in index.html: '' at the domain root, '/lqsql' when ROOT_PATH is used.
 export const BASE = (typeof window !== 'undefined' && window.__ROOT_PATH__) || '';
 const A = `${BASE}/api/`;
 
@@ -11,7 +11,7 @@ async function handle(r) {
   const ct = r.headers.get('content-type') || '';
   const data = ct.includes('json') ? await r.json() : await r.text();
   if (!r.ok) {
-    if (r.status === 401 && !location.hash.startsWith('#/login')) window.dispatchEvent(new Event('litesql:logout'));
+    if (r.status === 401 && !location.hash.startsWith('#/login')) window.dispatchEvent(new Event('lqsql:logout'));
     throw new ApiError((data && data.error) || r.statusText || 'Request failed', r.status, data);
   }
   return data;

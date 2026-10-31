@@ -182,7 +182,7 @@ function SqlImport({ ctx }) {
   };
   return (
     <div className="card">
-      <div className="card-h"><span className="ib amber"><FileCode2 size={15} /></span><h3>Run a SQL script</h3><span className="muted small">dumps from LiteSQL, pg_dump --inserts, mysqldump, sqlite3 .dump</span></div>
+      <div className="card-h"><span className="ib amber"><FileCode2 size={15} /></span><h3>Run a SQL script</h3><span className="muted small">dumps from lqSQL, pg_dump --inserts, mysqldump, sqlite3 .dump</span></div>
       <div className="card-b col" style={{ gap: 12 }}>
         {!file ? <Drop accept=".sql,.txt" onFile={setFile} label="Choose a .sql file" maxMb={ctx.me.import_max_mb} />
           : <div className="row"><span className="ib amber"><FileCode2 size={15} /></span><b>{file.name}</b><span className="pill">{fmtBytes(file.size)}</span><div className="spacer" /><button className="btn sm ghost" disabled={busy} onClick={() => { setFile(null); setLog([]); setRes(null); setProg(null); }}><RotateCcw size={13} />Change</button></div>}

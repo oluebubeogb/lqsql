@@ -90,7 +90,7 @@ def run(db: DB, sql: str, confirm: bool = False, max_rows: int | None = None):
                 kw = first_keyword(stmt)
                 if db.kind == "sqlite" and kw == "BEGIN" and not single_no_tx and raw.driver_connection.in_transaction:
                     results.append({"index": idx + 1, "sql": stmt[:300], "keyword": kw, "rowcount": -1, "ms": 0,
-                                    "skipped": "LiteSQL wraps each run in one transaction"})
+                                    "skipped": "lqSQL wraps each run in one transaction"})
                     continue
                 t0 = time.perf_counter()
                 cur = raw.cursor()

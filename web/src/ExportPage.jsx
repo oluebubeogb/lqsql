@@ -47,7 +47,7 @@ export default function ExportPage({ ctx }) {
           <label className="chk"><input type="checkbox" checked={opt.drop} disabled={!opt.ddl} onChange={(e) => setOpt({ ...opt, drop: e.target.checked })} />Add DROP … IF EXISTS</label>
         </div></div>
       )}
-      {ctx.me.engine === 'postgresql' && fmt === 'sql' && <Note level="info">For very large or full-cluster backups prefer <code>pg_dump</code>. LiteSQL dumps tables, sequences, indexes, constraints, views and required extensions (e.g. <code>vector</code>).</Note>}
+      {ctx.me.engine === 'postgresql' && fmt === 'sql' && <Note level="info">For very large or full-cluster backups prefer <code>pg_dump</code>. lqSQL dumps tables, sequences, indexes, constraints, views and required extensions (e.g. <code>vector</code>).</Note>}
       <div className="row">
         <a className={`btn primary ${names.length && (fmt === 'csv' || opt.ddl || opt.data) ? '' : 'disabled'}`} style={!names.length ? { pointerEvents: 'none', opacity: 0.5 } : undefined} href={href}>
           <Download size={14} />Download {fmt.toUpperCase()}</a>

@@ -8,15 +8,18 @@ RUN npx vite build --outDir /out --emptyOutDir
 
 # ---- runtime ----
 FROM python:3.12-slim
+LABEL org.opencontainers.image.title="lqSQL" \
+      org.opencontainers.image.description="lqSQL — a light admin UI for PostgreSQL (pgvector), MySQL/MariaDB and SQLite" \
+      org.opencontainers.image.version="1.1.0"
 ENV PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFERED=1 PIP_NO_CACHE_DIR=1 PORT=80
 WORKDIR /srv
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt \
- && useradd -r -u 10001 -d /srv litesql \
- && mkdir -p /data && chown litesql /data
+ && useradd -r -u 10001 -d /srv lqsql \
+ && mkdir -p /data && chown lqsql /data
 COPY app/ ./app/
 COPY --from=web /out ./app/static
-USER litesql
+USER lqsql
 # Listens on $PORT (default 80, Coolify's default upstream port). Never published to the host.
 EXPOSE 80
 HEALTHCHECK --interval=30s --timeout=5s --start-period=15s --retries=3 \

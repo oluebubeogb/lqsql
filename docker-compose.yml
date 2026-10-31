@@ -1,12 +1,12 @@
-# LiteSQL — one small container, no bundled database.
+# lqSQL — one small container, no bundled database.
 # Coolify: create a "Docker Compose" resource from this repo, set the domain on the
-# `litesql` service (e.g. https://sql.collab.name.ng, no port) and fill the env vars.
+# `lqsql` service (e.g. https://lqsql.collab.name.ng, no port) and fill the env vars.
 # No host port is published: Coolify's proxy reaches the container on the internal
 # network, so nothing collides with other apps using 8080/3000/etc. on the VPS.
 services:
-  litesql:
+  lqsql:
     build: .
-    image: litesql:1.0.2
+    image: lqsql:1.1.0
     restart: unless-stopped
     environment:
       DATABASE_URL: ${DATABASE_URL:?set DATABASE_URL}
@@ -21,7 +21,7 @@ services:
       SECRET_KEY: ${SECRET_KEY:-}
       # container listen port; 80 is what Coolify's proxy targets when the domain has no :port
       PORT: ${PORT:-80}
-      # optional path hosting, e.g. /litesql (empty = app at the domain root)
+      # optional path hosting, e.g. /lqsql (empty = app at the domain root)
       ROOT_PATH: ${ROOT_PATH:-}
     expose:
       - "${PORT:-80}"
@@ -30,7 +30,7 @@ services:
     #   - "${HOST_PORT:-6789}:${PORT:-80}"
     volumes:
       # only needed for SQLite: DATABASE_URL=sqlite:////data/app.db
-      - litesql-data:/data
+      - lqsql-data:/data
     mem_limit: 256m
     sysctls:
       # lets the non-root app user bind port 80 inside its own network namespace
@@ -47,7 +47,7 @@ services:
     #   - coolify
 
 volumes:
-  litesql-data:
+  lqsql-data:
 
 # networks:
 #   coolify:

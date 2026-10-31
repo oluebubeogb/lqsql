@@ -151,7 +151,7 @@ def sql_dump(db: DB, schema, tables: list[str], ddl=True, data=True, drop=False,
 
     def gen():
         now = dt.datetime.now().isoformat(timespec="seconds")
-        yield f"-- LiteSQL {__version__} dump\n-- engine: {db.kind}  schema: {schema}  generated: {now}\n\n"
+        yield f"-- lqSQL {__version__} dump\n-- engine: {db.kind}  schema: {schema}  generated: {now}\n\n"
         with db.engine.connect() as c:
             metas = {t: db.table_meta(schema, t) for t in tables}
             real = [t for t in tables if not metas[t]["view"]]

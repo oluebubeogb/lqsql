@@ -15,7 +15,7 @@ export default function Login({ engine, onDone, theme, toggleTheme }) {
       <div style={{ position: 'fixed', top: 16, right: 16 }}><IB icon={theme === 'dark' ? Sun : Moon} tone="violet" title="Toggle theme" onClick={toggleTheme} /></div>
       <form className="card" onSubmit={submit}>
         <div className="logo" style={{ width: 40, height: 40, borderRadius: 12 }}><Database size={20} /></div>
-        <h2>Sign in to LiteSQL</h2>
+        <h2>Sign in to lqSQL</h2>
         <p>Lightweight admin for your {engine ? { postgresql: 'PostgreSQL', mysql: 'MySQL', sqlite: 'SQLite' }[engine] || engine : ''} database.</p>
         <label className="field"><span>Username</span><input className="input" autoFocus autoComplete="username" value={u} onChange={(e) => setU(e.target.value)} /></label>
         <label className="field"><span>Password</span><input className="input" type="password" autoComplete="current-password" value={p} onChange={(e) => setP(e.target.value)} /></label>

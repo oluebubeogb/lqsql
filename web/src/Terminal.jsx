@@ -3,19 +3,19 @@ import { Play, History, Eraser, FileSpreadsheet, Loader2, CheckCircle2, AlertCir
 import { api, fmtNum } from './api.js';
 import { IB, Confirm, ResultGrid, Note, useToast } from './ui.jsx';
 
-const HKEY = 'litesql-history';
+const HKEY = 'lqsql-history';
 const loadHist = () => { try { return JSON.parse(localStorage.getItem(HKEY) || '[]'); } catch (e) { return []; } };
 
 export default function Terminal({ ctx }) {
   const toast = useToast();
-  const [sql, setSql] = useState(() => localStorage.getItem('litesql-draft') || (ctx.tables[0] ? `SELECT * FROM ${ctx.tables[0].name} LIMIT 50;` : 'SELECT 1;'));
+  const [sql, setSql] = useState(() => localStorage.getItem('lqsql-draft') || (ctx.tables[0] ? `SELECT * FROM ${ctx.tables[0].name} LIMIT 50;` : 'SELECT 1;'));
   const [busy, setBusy] = useState(false);
   const [out, setOut] = useState(null);
   const [confirm, setConfirm] = useState(null);
   const [hist, setHist] = useState(loadHist);
   const [showHist, setShowHist] = useState(false);
   const ta = useRef();
-  useEffect(() => { try { localStorage.setItem('litesql-draft', sql); } catch (e) { /* ignore */ } }, [sql]);
+  useEffect(() => { try { localStorage.setItem('lqsql-draft', sql); } catch (e) { /* ignore */ } }, [sql]);
 
   const selected = () => {
     const el = ta.current; if (!el) return sql;

@@ -6,8 +6,8 @@ import json
 import time
 from collections import defaultdict, deque
 
-COOKIE = "litesql_session"
-CSRF_HEADER = "x-litesql"
+COOKIE = "lqsql_session"
+CSRF_HEADER = "x-lqsql"
 
 
 class Auth:

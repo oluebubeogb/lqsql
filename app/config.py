@@ -23,12 +23,12 @@ def _int(name: str, default: int) -> int:
 
 
 def normalize_root_path(raw: str | None) -> str:
-    """'' or '/' -> '' (root); 'litesql/' -> '/litesql'. Only URL-safe path chars allowed."""
+    """'' or '/' -> '' (root); 'lqsql/' -> '/lqsql'. Only URL-safe path chars allowed."""
     v = (raw or "").strip().strip("/")
     if not v:
         return ""
     if not re.fullmatch(r"[A-Za-z0-9._~\-/]+", v) or "//" in v or ".." in v.split("/"):
-        raise ValueError("ROOT_PATH may only contain letters, digits, '-', '_', '.', '~' and '/' (e.g. /litesql)")
+        raise ValueError("ROOT_PATH may only contain letters, digits, '-', '_', '.', '~' and '/' (e.g. /lqsql)")
     return "/" + v
 
 
@@ -127,13 +127,13 @@ def load() -> Settings:
         errors.append(str(e))
     if errors:
         for e in errors:
-            print(f"[litesql] config error: {e}", file=sys.stderr)
+            print(f"[lqsql] config error: {e}", file=sys.stderr)
         sys.exit(2)
     secret = os.getenv("SECRET_KEY", "").strip()
     if not secret:
         # stable across restarts, changes when the admin password changes
-        secret = hashlib.sha256(("litesql:" + user + ":" + pw + ":" + raw).encode()).hexdigest()
-    app_url = (os.getenv("APP_URL") or os.getenv("SERVICE_FQDN_LITESQL") and "https://" + os.getenv("SERVICE_FQDN_LITESQL", "") or "").strip()
+        secret = hashlib.sha256(("lqsql:" + user + ":" + pw + ":" + raw).encode()).hexdigest()
+    app_url = (os.getenv("APP_URL") or (os.getenv("SERVICE_FQDN_LQSQL") or os.getenv("SERVICE_FQDN_LITESQL")) and "https://" + (os.getenv("SERVICE_FQDN_LQSQL") or os.getenv("SERVICE_FQDN_LITESQL", "")) or "").strip()
     return Settings(
         database_url=url,
         engine=eng,

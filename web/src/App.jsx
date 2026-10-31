@@ -21,14 +21,14 @@ export const go = (path) => { location.hash = '#/' + path; };
 
 function useTheme() {
   const [theme, setTheme] = useState(document.documentElement.dataset.theme || 'light');
-  useEffect(() => { document.documentElement.dataset.theme = theme; try { localStorage.setItem('litesql-theme', theme); } catch (e) { /* ignore */ } }, [theme]);
+  useEffect(() => { document.documentElement.dataset.theme = theme; try { localStorage.setItem('lqsql-theme', theme); } catch (e) { /* ignore */ } }, [theme]);
   return [theme, () => setTheme((t) => (t === 'dark' ? 'light' : 'dark'))];
 }
 
 function Shell({ me, onLogout, theme, toggleTheme }) {
   const [route, setRoute] = useState(parseHash());
   const [schemas, setSchemas] = useState([]);
-  const [schema, setSchema] = useState(localStorage.getItem('litesql-schema') || me.default_schema);
+  const [schema, setSchema] = useState(localStorage.getItem('lqsql-schema') || me.default_schema);
   const [tables, setTables] = useState(null);
   const [q, setQ] = useState('');
   const [menu, setMenu] = useState(false);
@@ -45,7 +45,7 @@ function Shell({ me, onLogout, theme, toggleTheme }) {
     setTables(null);
     api.get('tables', { schema }).then((r) => setTables(r.tables)).catch(() => setTables([]));
   }, [schema]);
-  useEffect(() => { loadTables(); try { localStorage.setItem('litesql-schema', schema); } catch (e) { /* ignore */ } }, [loadTables, schema]);
+  useEffect(() => { loadTables(); try { localStorage.setItem('lqsql-schema', schema); } catch (e) { /* ignore */ } }, [loadTables, schema]);
   useEffect(() => { if (route.page === 't' && route.schema !== schema && schemas.includes(route.schema)) setSchema(route.schema); }, [route, schemas]); // eslint-disable-line
 
   const shown = useMemo(() => (tables || []).filter((t) => t.name.toLowerCase().includes(q.toLowerCase())), [tables, q]);
@@ -68,7 +68,7 @@ function Shell({ me, onLogout, theme, toggleTheme }) {
       <aside className="side">
         <div className="brand">
           <div className="logo"><Database size={16} /></div>
-          <div><b>LiteSQL</b><small>{me.database || 'database'}</small></div>
+          <div><b>lqSQL</b><small>{me.database || 'database'}</small></div>
         </div>
         <nav className="nav">
           {nav.map(([k, label, Icon]) => (
@@ -129,7 +129,7 @@ export default function App() {
       setState({ signedIn: true, me });
     } catch (e) { setState({ signedIn: false, error: e.message }); }
   }, []);
-  useEffect(() => { load(); const f = () => setState((s) => ({ ...s, signedIn: false })); window.addEventListener('litesql:logout', f); return () => window.removeEventListener('litesql:logout', f); }, [load]);
+  useEffect(() => { load(); const f = () => setState((s) => ({ ...s, signedIn: false })); window.addEventListener('lqsql:logout', f); return () => window.removeEventListener('lqsql:logout', f); }, [load]);
   const logout = async () => { await api.post('logout').catch(() => {}); setState({ signedIn: false }); };
   return (
     <ToastProvider>

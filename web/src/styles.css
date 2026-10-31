@@ -39,7 +39,9 @@ code,.mono{font-family:var(--mono);font-size:12.5px}
 .brand{display:flex;align-items:center;gap:10px;padding:16px 16px 12px}
 .brand b{font-size:15px;letter-spacing:-.2px}
 .brand small{color:var(--muted);font-size:11px;display:block;margin-top:-2px}
-.logo{width:30px;height:30px;border-radius:9px;display:grid;place-items:center;color:#fff;background:linear-gradient(135deg,#7c8cff,#4fd1c5);box-shadow:0 4px 14px rgba(88,102,242,.3)}
+.logo{width:30px;height:30px;border-radius:8px;display:grid;place-items:center;color:#fff;background:#000;box-shadow:none}
+[data-theme=dark] .logo{color:#000;background:#fff}
+
 .nav{padding:4px 10px 8px;display:flex;flex-direction:column;gap:2px}
 .nav button{display:flex;align-items:center;gap:10px;padding:7px 8px;border:0;background:none;border-radius:9px;cursor:pointer;color:var(--text-2);text-align:left}
 .nav button:hover{background:var(--sunken)}

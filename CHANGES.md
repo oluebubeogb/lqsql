@@ -1,5 +1,16 @@
 # Changelog
 
+## 1.1.0 — 2026-10-31
+- **Rebrand: LiteSQL → lqSQL.** The display name is `lqSQL` and the slug is `lqsql`.
+  - Renamed in the UI title, sidebar, login, API title, logs and dump headers.
+  - The compose service, image and volume are now `lqsql`, `lqsql:1.1.0` and `lqsql-data`. The Dockerfile has OCI labels, and the container user is `lqsql`.
+  - The cookie is now `lqsql_session`. The CSRF header is `x-lqsql`. Browser storage keys are now `lqsql-*`.
+  - The Coolify variable `SERVICE_FQDN_LQSQL` is used, with `SERVICE_FQDN_LITESQL` still accepted as a fallback.
+- **New logo: solid black** (no gradient). It is a black mark in the light theme and a white mark with a black glyph in the dark theme. The favicon follows the OS colour scheme.
+- **Docs:** `ROOT_PATH` stays optional; leave it empty for a subdomain. `/lqsql` is just an example path; you pick your own. The `APP_URL` examples use `lqsql.collab.name.ng` and `existing.collab.name.ng/lqsql`.
+- **Upgrade note:** existing sessions end once, so sign in again. Old drafts and history in the browser's localStorage do not carry over.
+
+
 ## 1.0.2 — 2026-10-31
 - **Optional path hosting** with `ROOT_PATH` (e.g. `/litesql`) for serving on an existing domain: `https://existing.collab.name.ng/litesql`. Empty or unset keeps root/subdomain hosting, the default.
   - `ROOT_PATH` is normalized (leading slash added, trailing slash removed) and validated.

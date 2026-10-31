@@ -31,7 +31,7 @@ class DB:
         else:
             kw.update(pool_size=3, max_overflow=3, pool_recycle=1800, pool_timeout=20)
             if self.kind == "postgresql":
-                kw["connect_args"] = {"connect_timeout": 10, "application_name": "litesql"}
+                kw["connect_args"] = {"connect_timeout": 10, "application_name": "lqsql"}
             else:
                 kw["connect_args"] = {"connect_timeout": 10, "charset": "utf8mb4"}
         self.engine: Engine = create_engine(s.database_url, **kw)

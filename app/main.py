@@ -1,4 +1,4 @@
-"""LiteSQL — a light admin for PostgreSQL / MySQL / SQLite."""
+"""lqSQL — a light admin for PostgreSQL / MySQL / SQLite."""
 import json
 import logging
 import os
@@ -14,16 +14,16 @@ from .browse import UserError
 from .config import load
 from .db import DB
 
-log = logging.getLogger("litesql")
+log = logging.getLogger("lqsql")
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s: %(message)s")
 
 settings = load()
 db = DB(settings)
 auth = Auth(settings)
-app = FastAPI(title="LiteSQL", version=__version__, docs_url=None, redoc_url=None, openapi_url=None)
-log.info("LiteSQL %s starting · engine=%s · db=%s · read_only=%s · root_path=%s", __version__, settings.engine,
+app = FastAPI(title="lqSQL", version=__version__, docs_url=None, redoc_url=None, openapi_url=None)
+log.info("lqSQL %s starting · engine=%s · db=%s · read_only=%s · root_path=%s", __version__, settings.engine,
          settings.masked_url, settings.read_only, settings.root_path or "/")
-ROOT = settings.root_path            # '' or '/litesql'
+ROOT = settings.root_path            # '' or '/lqsql'
 COOKIE_PATH = ROOT or "/"
 
 STATIC = os.path.join(os.path.dirname(__file__), "static")
@@ -316,15 +316,15 @@ def spa(path: str):
     html = _index_html()
     if html is not None:
         return HTMLResponse(html, headers={"Cache-Control": "no-cache"})
-    return Response("LiteSQL API is running. Build the web UI (web/) to serve it here.", media_type="text/plain")
+    return Response("lqSQL API is running. Build the web UI (web/) to serve it here.", media_type="text/plain")
 
 
 # ---------- optional path prefix (ROOT_PATH) ----------
 class RootPathMiddleware:
     """Serve the app under ROOT_PATH whether or not the proxy strips the prefix.
 
-    /litesql        -> 308 redirect to /litesql/
-    /litesql/...    -> routed as /...           (proxy forwards the full path)
+    /lqsql        -> 308 redirect to /lqsql/
+    /lqsql/...    -> routed as /...           (proxy forwards the full path)
     /...            -> routed as-is             (proxy already stripped the prefix)
     """
 

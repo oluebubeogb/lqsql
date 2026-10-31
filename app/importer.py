@@ -14,7 +14,7 @@ from .browse import UserError
 from .db import DB
 from .sqlsplit import first_keyword, split_sql
 
-TMP = os.path.join(tempfile.gettempdir(), "litesql-imports")
+TMP = os.path.join(tempfile.gettempdir(), "lqsql-imports")
 os.makedirs(TMP, exist_ok=True)
 INT_RE = re.compile(r"^[+-]?\d{1,18}$")
 NUM_RE = re.compile(r"^[+-]?(\d+\.?\d*|\.\d+)([eE][+-]?\d+)?$")
@@ -169,7 +169,7 @@ def sql_import(db: DB, data: bytes, single_tx: bool = True, stop_on_error: bool 
     for s in stmts[:2000]:
         if re.match(r"^\s*COPY\b.*\bFROM\s+stdin", s, re.I | re.S):
             raise UserError("This dump uses COPY … FROM stdin (pg_dump default). Re-export with `pg_dump --inserts` "
-                            "or use LiteSQL's SQL export.")
+                            "or use lqSQL's SQL export.")
 
     def gen():
         t0 = time.time()
