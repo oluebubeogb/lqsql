@@ -1,0 +1,45 @@
+# LiteSQL — one small container, no bundled database.
+# Coolify: create a "Docker Compose" resource from this repo, set the domain on the
+# `litesql` service (e.g. https://sql.collab.name.ng:8080 → port 8080) and fill the env vars.
+services:
+  litesql:
+    build: .
+    image: litesql:1.0.0
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: ${DATABASE_URL:?set DATABASE_URL}
+      SQL_TYPE: ${SQL_TYPE:-}
+      ADMIN_USER: ${ADMIN_USER:?set ADMIN_USER}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:?set ADMIN_PASSWORD}
+      APP_URL: ${APP_URL:-}
+      READ_ONLY: ${READ_ONLY:-false}
+      IMPORT_MAX_MB: ${IMPORT_MAX_MB:-25}
+      QUERY_TIMEOUT_SECONDS: ${QUERY_TIMEOUT_SECONDS:-30}
+      PAGE_SIZE_DEFAULT: ${PAGE_SIZE_DEFAULT:-50}
+      SECRET_KEY: ${SECRET_KEY:-}
+    expose:
+      - "8080"
+    # Local use without Coolify: uncomment to publish the port.
+    # ports:
+    #   - "8080:8080"
+    volumes:
+      # only needed for SQLite: DATABASE_URL=sqlite:////data/app.db
+      - litesql-data:/data
+    mem_limit: 256m
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request;urllib.request.urlopen('http://127.0.0.1:8080/api/health',timeout=4)"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
+    # To reach another Coolify-managed database by its internal hostname, either tick
+    # "Connect to Predefined Network" in Coolify, or uncomment both `networks` blocks.
+    # networks:
+    #   - coolify
+
+volumes:
+  litesql-data:
+
+# networks:
+#   coolify:
+#     external: true

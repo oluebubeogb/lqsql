@@ -1,0 +1,9 @@
+.venv
+web/node_modules
+**/__pycache__
+*.zip
+.env
+screenshots
+app/static
+.git
+tests
