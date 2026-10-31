@@ -1,6 +1,7 @@
 """Environment configuration. Secrets are never logged."""
 import hashlib
 import os
+import re
 import sys
 from dataclasses import dataclass
 
@@ -19,6 +20,16 @@ def _int(name: str, default: int) -> int:
         return int(os.getenv(name, "") or default)
     except ValueError:
         return default
+
+
+def normalize_root_path(raw: str | None) -> str:
+    """'' or '/' -> '' (root); 'litesql/' -> '/litesql'. Only URL-safe path chars allowed."""
+    v = (raw or "").strip().strip("/")
+    if not v:
+        return ""
+    if not re.fullmatch(r"[A-Za-z0-9._~\-/]+", v) or "//" in v or ".." in v.split("/"):
+        raise ValueError("ROOT_PATH may only contain letters, digits, '-', '_', '.', '~' and '/' (e.g. /litesql)")
+    return "/" + v
 
 
 def normalize_url(raw: str, sql_type: str | None) -> tuple[str, str]:
@@ -75,6 +86,7 @@ class Settings:
     session_hours: int
     show_system_schemas: bool
     port: int
+    root_path: str
 
     @property
     def masked_url(self) -> str:
@@ -108,6 +120,11 @@ def load() -> Settings:
             url, eng = normalize_url(raw, os.getenv("SQL_TYPE") or None)
         except ValueError as e:
             errors.append(str(e))
+    root_path = ""
+    try:
+        root_path = normalize_root_path(os.getenv("ROOT_PATH"))
+    except ValueError as e:
+        errors.append(str(e))
     if errors:
         for e in errors:
             print(f"[litesql] config error: {e}", file=sys.stderr)
@@ -132,4 +149,5 @@ def load() -> Settings:
         session_hours=max(1, _int("SESSION_HOURS", 12)),
         show_system_schemas=_bool("SHOW_SYSTEM_SCHEMAS", False),
         port=_int("PORT", 80),
+        root_path=root_path,
     )

@@ -6,7 +6,7 @@
 services:
   litesql:
     build: .
-    image: litesql:1.0.1
+    image: litesql:1.0.2
     restart: unless-stopped
     environment:
       DATABASE_URL: ${DATABASE_URL:?set DATABASE_URL}
@@ -21,6 +21,8 @@ services:
       SECRET_KEY: ${SECRET_KEY:-}
       # container listen port; 80 is what Coolify's proxy targets when the domain has no :port
       PORT: ${PORT:-80}
+      # optional path hosting, e.g. /litesql (empty = app at the domain root)
+      ROOT_PATH: ${ROOT_PATH:-}
     expose:
       - "${PORT:-80}"
     # Local use without Coolify only (Coolify ignores this; its proxy handles routing):
@@ -34,7 +36,7 @@ services:
       # lets the non-root app user bind port 80 inside its own network namespace
       net.ipv4.ip_unprivileged_port_start: 0
     healthcheck:
-      test: ["CMD", "python", "-c", "import urllib.request,os;urllib.request.urlopen('http://127.0.0.1:%s/api/health'%os.getenv('PORT','80'),timeout=4)"]
+      test: ["CMD", "python", "-c", "import urllib.request,os;r=os.getenv('ROOT_PATH','').strip().strip('/');urllib.request.urlopen('http://127.0.0.1:%s%s/api/health'%(os.getenv('PORT','80'),'/'+r if r else ''),timeout=4)"]
       interval: 30s
       timeout: 5s
       retries: 3

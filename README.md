@@ -36,6 +36,7 @@ It is meant to replace pgAdmin / phpMyAdmin on a small VPS: one Python process w
 | `MAX_RESULT_ROWS` | | `1000` | rows shown per terminal result |
 | `SESSION_HOURS` | | `12` | login lifetime |
 | `PORT` | | `80` | container listen port (leave unset on Coolify) |
+| `ROOT_PATH` | | empty | serve under a path, e.g. `/litesql`; empty = domain root |
 
 ## Deploy on Coolify
 1. Push this folder to a **private** repo, or upload the zip contents. In Coolify, go to **+ New → Docker Compose** (choose a Git source, "Docker Compose" build pack, and `/docker-compose.yml`).
@@ -45,6 +46,24 @@ It is meant to replace pgAdmin / phpMyAdmin on a small VPS: one Python process w
 5. Deploy. The healthcheck hits `/api/health`, and the container is capped at `mem_limit: 256m`.
 
 **Ports**: the app listens on `0.0.0.0:$PORT` (default `80` in the image). You only need to set `PORT` if you want a different internal port, and then you must append it to the Coolify domain (`https://sql.collab.name.ng:<PORT>`). Binding 80 as the non-root user relies on the `net.ipv4.ip_unprivileged_port_start: 0` sysctl in the compose file, which Docker 20.10+ already sets by default.
+
+### Path mode: an existing domain at `/litesql` (optional)
+Use this to put LiteSQL on a domain you already use, e.g. `https://existing.collab.name.ng/litesql`, alongside the app that serves `/`.
+
+| Setting (Coolify) | Subdomain / root mode (default) | Path mode |
+|---|---|---|
+| Domain on the `litesql` service | `https://sql.collab.name.ng` | `https://existing.collab.name.ng/litesql` |
+| `ROOT_PATH` | *(leave empty)* | `/litesql` |
+| `APP_URL` | `https://sql.collab.name.ng` | `https://existing.collab.name.ng/litesql` |
+| Port | no `:port`, auto | no `:port`, auto |
+
+- `ROOT_PATH` is normalized, so `litesql`, `/litesql` and `/litesql/` all mean `/litesql`. `/litesql` redirects to `/litesql/`.
+- LiteSQL knows its prefix, so the proxy **does not need to strip the path**:
+  - **Without a strip** (Traefik `PathPrefix(`/litesql`)` forwards `/litesql/api/...`): LiteSQL removes the prefix itself.
+  - **With a strip** (Traefik `stripprefix` middleware, or Coolify's "Strip Prefixes" option): LiteSQL receives `/api/...` and still works.
+- The UI gets the prefix from the server through `<base href>` and `window.__ROOT_PATH__`, so assets and API calls stay under `/litesql`. The session cookie is scoped to `Path=/litesql`.
+- The healthcheck automatically calls `{ROOT_PATH}/api/health`.
+- Traefik gives longer rules priority, so `existing.collab.name.ng/litesql` wins over the app that owns `existing.collab.name.ng/`. No DNS change is needed.
 
 To manage several databases, deploy one LiteSQL per database (each about 70 MB) on its own subdomain, e.g. `sql.collab.name.ng` and `mysql.collab.name.ng`.
 

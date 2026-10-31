@@ -1,5 +1,17 @@
 # Changelog
 
+## 1.0.2 — 2026-10-31
+- **Optional path hosting** with `ROOT_PATH` (e.g. `/litesql`) for serving on an existing domain: `https://existing.collab.name.ng/litesql`. Empty or unset keeps root/subdomain hosting, the default.
+  - `ROOT_PATH` is normalized (leading slash added, trailing slash removed) and validated.
+  - The app knows its prefix, and the proxy strip is optional: both `/litesql/api/...` and stripped `/api/...` work. `/litesql` redirects to `/litesql/`.
+  - The SPA uses relative assets (Vite `base: './'`). The server injects `<base href="{ROOT_PATH}/">` and `window.__ROOT_PATH__`, and every API, export and download URL uses that prefix.
+  - The session cookie is scoped to `Path={ROOT_PATH}` (or `/`).
+  - The Dockerfile and compose healthchecks call `{ROOT_PATH}/api/health`, and compose passes `ROOT_PATH`.
+  - The README covers path mode and subdomain mode for Coolify, with and without a strip; `.env.example` is updated.
+- Smoke-tested with `ROOT_PATH=/litesql` (Postgres) and empty (SQLite):
+  - health, the redirect, index injection, assets, favicon, login cookie path, and the API;
+  - a browser run through login, browse, terminal and reload.
+
 ## 1.0.1 — 2026-10-31
 - **Ports / Coolify**: no host port is published any more, and the domain needs no `:port` suffix.
   - The container now listens on `0.0.0.0:${PORT:-80}` (was a fixed 8080). Port 80 is Coolify's default upstream port, so the proxy finds the app automatically. With no published host port there are no clashes with other apps on 8080.

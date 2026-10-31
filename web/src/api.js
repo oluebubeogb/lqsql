@@ -1,4 +1,7 @@
 const H = { 'x-litesql': '1' };
+// Set by the server in index.html: '' at the domain root, '/litesql' when ROOT_PATH is used.
+export const BASE = (typeof window !== 'undefined' && window.__ROOT_PATH__) || '';
+const A = `${BASE}/api/`;
 
 export class ApiError extends Error {
   constructor(msg, status, data) { super(msg); this.status = status; this.data = data; }
@@ -18,17 +21,17 @@ const qs = (p) => Object.entries(p || {}).filter(([, v]) => v !== undefined && v
   .map(([k, v]) => `${encodeURIComponent(k)}=${encodeURIComponent(v)}`).join('&');
 
 export const api = {
-  get: (path, params) => fetch(`/api/${path}${params ? '?' + qs(params) : ''}`, { credentials: 'same-origin' }).then(handle),
-  send: (method, path, body) => fetch(`/api/${path}`, {
+  get: (path, params) => fetch(`${A}${path}${params ? '?' + qs(params) : ''}`, { credentials: 'same-origin' }).then(handle),
+  send: (method, path, body) => fetch(`${A}${path}`, {
     method, credentials: 'same-origin', headers: { ...H, 'content-type': 'application/json' }, body: JSON.stringify(body || {}),
   }).then(handle),
   post: (path, body) => api.send('POST', path, body),
   patch: (path, body) => api.send('PATCH', path, body),
-  upload: (path, form) => fetch(`/api/${path}`, { method: 'POST', credentials: 'same-origin', headers: H, body: form }).then(handle),
-  url: (path, params) => `/api/${path}?${qs(params)}`,
+  upload: (path, form) => fetch(`${A}${path}`, { method: 'POST', credentials: 'same-origin', headers: H, body: form }).then(handle),
+  url: (path, params) => `${A}${path}?${qs(params)}`,
   // NDJSON streaming (import progress)
   async stream(path, { body, form, onEvent }) {
-    const r = await fetch(`/api/${path}`, {
+    const r = await fetch(`${A}${path}`, {
       method: 'POST', credentials: 'same-origin',
       headers: form ? H : { ...H, 'content-type': 'application/json' },
       body: form || JSON.stringify(body),
@@ -48,7 +51,7 @@ export const api = {
     if (buf.trim()) onEvent(JSON.parse(buf));
   },
   async download(path, body, fallbackName) {
-    const r = await fetch(`/api/${path}`, { method: 'POST', credentials: 'same-origin', headers: { ...H, 'content-type': 'application/json' }, body: JSON.stringify(body) });
+    const r = await fetch(`${A}${path}`, { method: 'POST', credentials: 'same-origin', headers: { ...H, 'content-type': 'application/json' }, body: JSON.stringify(body) });
     if (!r.ok) return handle(r);
     const cd = r.headers.get('content-disposition') || '';
     const m = /filename="([^"]+)"/.exec(cd);

@@ -5,7 +5,7 @@ import os
 import time
 
 from fastapi import FastAPI, File, Form, Request, UploadFile
-from fastapi.responses import FileResponse, JSONResponse, Response, StreamingResponse
+from fastapi.responses import FileResponse, HTMLResponse, JSONResponse, RedirectResponse, Response, StreamingResponse
 from fastapi.staticfiles import StaticFiles
 
 from . import __version__, analysis, browse, dump, importer, terminal
@@ -21,7 +21,10 @@ settings = load()
 db = DB(settings)
 auth = Auth(settings)
 app = FastAPI(title="LiteSQL", version=__version__, docs_url=None, redoc_url=None, openapi_url=None)
-log.info("LiteSQL %s starting · engine=%s · db=%s · read_only=%s", __version__, settings.engine, settings.masked_url, settings.read_only)
+log.info("LiteSQL %s starting · engine=%s · db=%s · read_only=%s · root_path=%s", __version__, settings.engine,
+         settings.masked_url, settings.read_only, settings.root_path or "/")
+ROOT = settings.root_path            # '' or '/litesql'
+COOKIE_PATH = ROOT or "/"
 
 STATIC = os.path.join(os.path.dirname(__file__), "static")
 OPEN_PATHS = {"/api/health", "/api/login", "/api/session"}
@@ -101,14 +104,14 @@ async def login(request: Request):
     resp = JSONResponse({"ok": True})
     secure = settings.cookie_secure or request.headers.get("x-forwarded-proto") == "https" or request.url.scheme == "https"
     resp.set_cookie(COOKIE, auth.issue(), httponly=True, samesite="lax", secure=secure,
-                    max_age=settings.session_hours * 3600, path="/")
+                    max_age=settings.session_hours * 3600, path=COOKIE_PATH)
     return resp
 
 
 @app.post("/api/logout")
 def logout():
     resp = JSONResponse({"ok": True})
-    resp.delete_cookie(COOKIE, path="/")
+    resp.delete_cookie(COOKIE, path=COOKIE_PATH)
     return resp
 
 
@@ -283,6 +286,22 @@ def analysis_table(schema: str, table: str):
 
 
 # ---------- SPA ----------
+_INDEX_CACHE: dict = {}
+
+
+def _index_html():
+    """index.html with <base href> + window.__ROOT_PATH__ so assets and API calls resolve under ROOT_PATH."""
+    idx = os.path.join(STATIC, "index.html")
+    if not os.path.exists(idx):
+        return None
+    mtime = os.path.getmtime(idx)
+    if _INDEX_CACHE.get("mtime") != mtime:
+        raw = open(idx, encoding="utf-8").read()
+        inject = f'<base href="{ROOT}/" /><script>window.__ROOT_PATH__={json.dumps(ROOT)}</script>'
+        _INDEX_CACHE.update(mtime=mtime, html=raw.replace("<head>", "<head>" + inject, 1))
+    return _INDEX_CACHE["html"]
+
+
 if os.path.isdir(os.path.join(STATIC, "assets")):
     app.mount("/assets", StaticFiles(directory=os.path.join(STATIC, "assets")), name="assets")
 
@@ -294,7 +313,40 @@ def spa(path: str):
     f = os.path.join(STATIC, path)
     if path and os.path.isfile(f) and os.path.realpath(f).startswith(os.path.realpath(STATIC)):
         return FileResponse(f)
-    idx = os.path.join(STATIC, "index.html")
-    if os.path.exists(idx):
-        return FileResponse(idx, headers={"Cache-Control": "no-cache"})
+    html = _index_html()
+    if html is not None:
+        return HTMLResponse(html, headers={"Cache-Control": "no-cache"})
     return Response("LiteSQL API is running. Build the web UI (web/) to serve it here.", media_type="text/plain")
+
+
+# ---------- optional path prefix (ROOT_PATH) ----------
+class RootPathMiddleware:
+    """Serve the app under ROOT_PATH whether or not the proxy strips the prefix.
+
+    /litesql        -> 308 redirect to /litesql/
+    /litesql/...    -> routed as /...           (proxy forwards the full path)
+    /...            -> routed as-is             (proxy already stripped the prefix)
+    """
+
+    def __init__(self, inner, prefix: str):
+        self.inner, self.prefix = inner, prefix
+
+    async def __call__(self, scope, receive, send):
+        if scope["type"] in ("http", "websocket") and self.prefix:
+            path = scope.get("path", "")
+            if path == self.prefix:
+                qs = scope.get("query_string", b"").decode("latin-1")
+                resp = RedirectResponse(self.prefix + "/" + ("?" + qs if qs else ""), status_code=308)
+                return await resp(scope, receive, send)
+            if path.startswith(self.prefix + "/"):
+                scope = dict(scope)
+                scope["path"] = path[len(self.prefix):]
+                raw = scope.get("raw_path")
+                if raw and raw.startswith(self.prefix.encode()):
+                    scope["raw_path"] = raw[len(self.prefix):]
+        return await self.inner(scope, receive, send)
+
+
+if ROOT:
+    _fastapi_app = app
+    app = RootPathMiddleware(_fastapi_app, ROOT)
